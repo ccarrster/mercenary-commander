@@ -9,9 +9,9 @@ function closeLink($link){
 	mysqli_close($link);
 }
 
-class game{
-	var id = '';
-	var timestamp = '';
+class Game{
+	var $id = '';
+	var $timestamp = '';
 }
 
 if(isset($_GET['action'])){
