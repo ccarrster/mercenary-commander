@@ -1,7 +1,7 @@
 <?php
 
 function getLink(){
-	$link = mysqli_connect("localhost", "root", "root", "mercenarycommander", "8889");
+	$link = mysqli_connect("localhost", "root", "root", "mercenarycommander", "3306");
 	return $link;
 }
 
