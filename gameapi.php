@@ -27,6 +27,7 @@ if(isset($_GET['action'])){
 		    $game = new Game();
 		    $game->id = $id;
 		    $game->timestamp = $timestamp;
+		    $games[] = $game;
 		}
 		echo(json_encode($games));
 	} elseif($action == 'getGame'){
