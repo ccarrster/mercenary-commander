@@ -19,7 +19,7 @@ if(isset($_GET['action'])){
 	$action = $_GET['action'];
 	if($action == 'getGames'){
 		$resultQuery = mysqli_query($link, "SELECT id, createdtimestamp FROM game;");
-		var_dump(mysqli_error($link));
+
 		$games = array();
 		while ($row = $resultQuery->fetch_object()){
 		    $id = $row->id;
