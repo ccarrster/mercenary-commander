@@ -75,6 +75,12 @@ function getHistory($gameid = null){
 	return $histories;
 }
 
+function addHistory($gameid, $action){
+	$link = getLink();
+	mysqli_query($link, "INSERT INTO history (gameid, action) VALUES(".mysqli_real_escape_string($link, $gameid).", '".mysqli_real_escape_string($link, $action)."');");
+	closeLink($link);
+}
+
 if(isset($_GET['action'])){
 	$link = getLink();
 	$action = $_GET['action'];
@@ -147,7 +153,7 @@ if(isset($_GET['action'])){
 				if($count == '0'){
 					$resultQuery = mysqli_query($link, "INSERT INTO gameuser (gameid, userid) VALUES(".mysqli_real_escape_string($link, $_GET['gameid']).", ".mysqli_real_escape_string($link, $_GET['userid']).");");
 					$userId = mysqli_insert_id($link);
-					mysqli_query($link, "INSERT INTO history (gameid, action) VALUES(".mysqli_real_escape_string($link, $_GET['gameid']).", 'joined game:".mysqli_real_escape_string($link, $_GET['userid'])."');");
+					addHistory($_GET['gameid'], 'joined game:'.$_GET['userid']);
 					echo(json_encode($userId));
 				} else {
 					echo(json_encode('user already joined game'));
@@ -171,7 +177,7 @@ if(isset($_GET['action'])){
 				}
 				if($count != '0'){
 					$resultQuery = mysqli_query($link, "DELETE FROM gameuser WHERE gameid = ".mysqli_real_escape_string($link, $_GET['gameid'])." AND userid = ".mysqli_real_escape_string($link, $_GET['userid']).";");
-					mysqli_query($link, "INSERT INTO history (gameid, action) VALUES(".mysqli_real_escape_string($link, $_GET['gameid']).", 'left game:".mysqli_real_escape_string($link, $_GET['userid'])."');");
+					addHistory($_GET['gameid'], 'left game:'.$_GET['userid']);
 					echo(json_encode('user left game'));
 				} else {
 					echo(json_encode('user not found in game'));
@@ -189,6 +195,18 @@ if(isset($_GET['action'])){
 			echo(json_encode($histories));
 		} else {
 			echo(json_encode('gameid must be set'));
+		}
+	} elseif($action == 'addHistory'){
+		if(isset($_GET['gameid']) && isset($_GET['text'])){
+			$games = getGame($_GET['gameid']);
+			if(count($games) == 0){
+				echo(json_encode('Game not found'));
+			} else {
+				addHistory($_GET['gameid'], $_GET['text']);
+				echo(json_encode('history added'));
+			}
+		} else {
+			echo(json_encode('gameid and text must be set'));
 		}
 	} else {
 		echo(json_encode("Action " . $action . " not supported."));
