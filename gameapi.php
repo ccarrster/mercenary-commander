@@ -22,9 +22,22 @@ if(isset($_GET['action'])){
 		}
 		echo(json_encode($games));
 	} elseif($action == 'getGame'){
+		$resultQuery = mysqli_query($link, "SELECT id, createdtimestamp FROM game WHERE id = ".mysqli_real_escape_string($link, $_GET['id']).";");
 
+		$games = array();
+		while ($row = $resultQuery->fetch_object()){
+		    $id = $row->id;
+		    $timestamp = $row->createdtimestamp;
+		    $game = new Game();
+		    $game->id = $id;
+		    $game->timestamp = $timestamp;
+		    $games[] = $game;
+		}
+		echo(json_encode($games));
 	} elseif($action == 'createGame'){
-
+		$resultQuery = mysqli_query($link, "INSERT INTO game VALUES();");
+		$gameId = mysqli_insert_id($link);
+		echo(json_encode($gameId));
 	} else {
 		echo(json_encode("Action " . $action . " not supported."));
 	}
