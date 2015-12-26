@@ -17,3 +17,11 @@ CREATE TABLE gameuser (
      userid MEDIUMINT,
      PRIMARY KEY (id)
 );
+
+CREATE TABLE history (
+	id MEDIUMINT NOT NULL AUTO_INCREMENT,
+	createdtimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+	gameid MEDIUMINT,
+	action TEXT,
+	PRIMARY KEY (id)
+);

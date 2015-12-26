@@ -11,6 +11,13 @@ class User{
 	var $handle = '';
 }
 
+class History{
+	var $id = '';
+	var $timestamp = '';
+	var $gameid = '';
+	var $action = '';
+}
+
 function getGame($id){
 	$link = getLink();
 	$resultQuery = mysqli_query($link, "SELECT id, createdtimestamp FROM game WHERE id = ".mysqli_real_escape_string($link, $id).";");
@@ -44,6 +51,28 @@ function getUser($id){
 	}
 	closeLink($link);
 	return $users;
+}
+
+function getHistory($gameid = null){
+	$link = getLink();
+	if($gameid != null){
+		$resultQuery = mysqli_query($link, "SELECT id, createdtimestamp, gameid, action FROM history WHERE gameid = ".mysqli_real_escape_string($link, $gameid).";");	
+	} else {
+		$resultQuery = mysqli_query($link, "SELECT id, createdtimestamp, gameid, action FROM history;");
+	}
+	$histories = array();
+	while ($row = $resultQuery->fetch_object()){
+	    $id = $row->id;
+	    $timestamp = $row->createdtimestamp;
+	    $history = new History();
+	    $history->id = $id;
+	    $history->timestamp = $timestamp;
+	    $history->gameid = $row->gameid;
+	    $history->action = $row->action;
+	    $histories[] = $history;
+	}
+	closeLink($link);
+	return $histories;
 }
 
 if(isset($_GET['action'])){
@@ -118,6 +147,7 @@ if(isset($_GET['action'])){
 				if($count == '0'){
 					$resultQuery = mysqli_query($link, "INSERT INTO gameuser (gameid, userid) VALUES(".mysqli_real_escape_string($link, $_GET['gameid']).", ".mysqli_real_escape_string($link, $_GET['userid']).");");
 					$userId = mysqli_insert_id($link);
+					mysqli_query($link, "INSERT INTO history (gameid, action) VALUES(".mysqli_real_escape_string($link, $_GET['gameid']).", 'joined game:".mysqli_real_escape_string($link, $_GET['userid'])."');");
 					echo(json_encode($userId));
 				} else {
 					echo(json_encode('user already joined game'));
@@ -141,6 +171,7 @@ if(isset($_GET['action'])){
 				}
 				if($count != '0'){
 					$resultQuery = mysqli_query($link, "DELETE FROM gameuser WHERE gameid = ".mysqli_real_escape_string($link, $_GET['gameid'])." AND userid = ".mysqli_real_escape_string($link, $_GET['userid']).";");
+					mysqli_query($link, "INSERT INTO history (gameid, action) VALUES(".mysqli_real_escape_string($link, $_GET['gameid']).", 'left game:".mysqli_real_escape_string($link, $_GET['userid'])."');");
 					echo(json_encode('user left game'));
 				} else {
 					echo(json_encode('user not found in game'));
@@ -148,6 +179,16 @@ if(isset($_GET['action'])){
 			}
 		} else {
 			echo(json_encode("userid and gameid must be set"));
+		}
+	} elseif($action == 'getHistories'){
+		$histories = getHistory();
+		echo(json_encode($histories));
+	} elseif($action == 'getHistory'){
+		if(isset($_GET['gameid'])){
+			$histories = getHistory($_GET['gameid']);
+			echo(json_encode($histories));
+		} else {
+			echo(json_encode('gameid must be set'));
 		}
 	} else {
 		echo(json_encode("Action " . $action . " not supported."));
