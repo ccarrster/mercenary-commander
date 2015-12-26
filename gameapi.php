@@ -1,14 +1,5 @@
 <?php
-
-function getLink(){
-	$link = mysqli_connect("localhost", "root", "root", "mercenarycommander", "3306");
-	return $link;
-}
-
-function closeLink($link){
-	mysqli_close($link);
-}
-
+require_once('dbconfig.php');
 class Game{
 	var $id = '';
 	var $timestamp = '';
