@@ -10,3 +10,10 @@ CREATE TABLE user (
      handle TEXT,
      PRIMARY KEY (id)
 );
+
+CREATE TABLE gameuser (
+     id MEDIUMINT NOT NULL AUTO_INCREMENT,
+     gameid MEDIUMINT,
+     userid MEDIUMINT,
+     PRIMARY KEY (id)
+);
