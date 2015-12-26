@@ -3,3 +3,10 @@ CREATE TABLE game (
      createdtimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
      PRIMARY KEY (id)
 );
+
+CREATE TABLE user (
+     id MEDIUMINT NOT NULL AUTO_INCREMENT,
+     createdtimestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+     handle TEXT,
+     PRIMARY KEY (id)
+);
