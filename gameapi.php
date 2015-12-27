@@ -18,6 +18,12 @@ class History{
 	var $action = '';
 }
 
+function createCityInstance($gameid, $cityid){
+	$link = getLink();
+	$resultQuery = mysqli_query($link, "INSERT INTO cityinstance (gameid, cityid) VALUES(".mysqli_real_escape_string($link, $gameid).", ".mysqli_real_escape_string($link, $cityid).");");
+	closeLink($link);
+}
+
 function getPlayerCount($gameId){
 	$link = getLink();
 	$resultQuery = mysqli_query($link, "SELECT count(*) as count FROM gameuser WHERE gameid = ".mysqli_real_escape_string($link, $_GET['gameid']).";");
@@ -124,6 +130,7 @@ if(isset($_GET['action'])){
 	} elseif($action == 'createGame'){
 		$resultQuery = mysqli_query($link, "INSERT INTO game VALUES();");
 		$gameId = mysqli_insert_id($link);
+		$resultQuery = mysqli_query($link, "INSERT INTO gamestatus (gameid, started) VALUES($gameId, false);");
 		if(isset($_GET['type'])){
 			$sql = "INSERT INTO gametype (gameid, gametype) VALUES($gameId, '".mysqli_real_escape_string($link, $_GET['type'])."');";
 			$resultQuery = mysqli_query($link, $sql);
@@ -256,9 +263,22 @@ if(isset($_GET['action'])){
 		if(isset($_GET['gameid'])){
 			$count = getPlayerCount($_GET['gameid']);
 			if($count > 1){
-				addHistory($_GET['gameid'], 'game started');
+				$resultQuery = mysqli_query($link, "SELECT started FROM gamestatus WHERE gameid = ".mysqli_real_escape_string($link, $_GET['gameid']).";");
+				while ($row = $resultQuery->fetch_object()){
+					$started = $row->started;
+				}
+				if(!$started){
+					$resultQuery = mysqli_query($link, "UPDATE gamestatus SET started = true WHERE gameid = ".mysqli_real_escape_string($link, $_GET['gameid']).";");
+					for($i = 1; $i < 18; $i++){
+						createCityInstance($_GET['gameid'], $i);
+					}
+					addHistory($_GET['gameid'], 'game started');
+					echo(json_encode('Game Started'));
+				} else {
+					echo(json_encode('Game already started'));
+				}
 			} else {
-				echo(json_encode('Need at least 2 players to start');
+				echo(json_encode('Need at least 2 players to start'));
 			}
 		} else {
 			echo(json_encode('gameid must be set'));
