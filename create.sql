@@ -25,3 +25,10 @@ CREATE TABLE history (
 	action TEXT,
 	PRIMARY KEY (id)
 );
+
+CREATE TABLE gametype (
+	id MEDIUMINT NOT NULL AUTO_INCREMENT,
+	gameid MEDIUMINT,
+	gametype TEXT,
+	PRIMARY KEY (id)
+);

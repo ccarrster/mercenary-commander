@@ -18,6 +18,16 @@ class History{
 	var $action = '';
 }
 
+function getPlayerCount($gameId){
+	$link = getLink();
+	$resultQuery = mysqli_query($link, "SELECT count(*) as count FROM gameuser WHERE gameid = ".mysqli_real_escape_string($link, $_GET['gameid']).";");
+	while ($row = $resultQuery->fetch_object()){
+		$userCount = $row->count;
+	}
+	closeLink($link);
+	return $userCount;
+}
+
 function getGame($id){
 	$link = getLink();
 	$resultQuery = mysqli_query($link, "SELECT id, createdtimestamp FROM game WHERE id = ".mysqli_real_escape_string($link, $id).";");
@@ -81,6 +91,17 @@ function addHistory($gameid, $action){
 	closeLink($link);
 }
 
+function getGameType($gameid){
+	$link = getLink();
+	$gameType = '';
+	$resultQuery = mysqli_query($link, "SELECT gametype FROM gametype WHERE gameid = '".mysqli_real_escape_string($link, $_GET['gameid'])."';");
+	while ($row = $resultQuery->fetch_object()){
+		$gameType = $row->gametype;
+	}
+	closeLink($link);
+	return $gameType;
+}
+
 if(isset($_GET['action'])){
 	$link = getLink();
 	$action = $_GET['action'];
@@ -103,7 +124,18 @@ if(isset($_GET['action'])){
 	} elseif($action == 'createGame'){
 		$resultQuery = mysqli_query($link, "INSERT INTO game VALUES();");
 		$gameId = mysqli_insert_id($link);
+		if(isset($_GET['type'])){
+			$sql = "INSERT INTO gametype (gameid, gametype) VALUES($gameId, '".mysqli_real_escape_string($link, $_GET['type'])."');";
+			$resultQuery = mysqli_query($link, $sql);
+		}
 		echo(json_encode($gameId));
+	} elseif($action == 'getGameType'){
+		if(isset($_GET['gameid'])){
+			$gameType = getGameType($_GET['gameid']);
+			echo(json_encode($gameType));
+		} else {
+			echo(json_encode('A gameid must be set'));
+		}
 	} elseif($action == 'createUser'){
 		if(isset($_GET['handle'])){
 			$resultQuery = mysqli_query($link, "SELECT count(*) as count FROM user WHERE handle = '".mysqli_real_escape_string($link, $_GET['handle'])."';");
@@ -151,10 +183,15 @@ if(isset($_GET['action'])){
 					$count = $row->count;
 				}
 				if($count == '0'){
-					$resultQuery = mysqli_query($link, "INSERT INTO gameuser (gameid, userid) VALUES(".mysqli_real_escape_string($link, $_GET['gameid']).", ".mysqli_real_escape_string($link, $_GET['userid']).");");
-					$userId = mysqli_insert_id($link);
-					addHistory($_GET['gameid'], 'joined game:'.$_GET['userid']);
-					echo(json_encode($userId));
+					$userCount = getPlayerCount($_GET['gameid']);
+					if($userCount >= 6){
+						echo(json_encode('Game is full 6 playsers max'));	
+					} else {
+						$resultQuery = mysqli_query($link, "INSERT INTO gameuser (gameid, userid) VALUES(".mysqli_real_escape_string($link, $_GET['gameid']).", ".mysqli_real_escape_string($link, $_GET['userid']).");");
+						$userId = mysqli_insert_id($link);
+						addHistory($_GET['gameid'], 'joined game:'.$_GET['userid']);
+						echo(json_encode($userId));
+					}
 				} else {
 					echo(json_encode('user already joined game'));
 				}
@@ -208,12 +245,30 @@ if(isset($_GET['action'])){
 		} else {
 			echo(json_encode('gameid and text must be set'));
 		}
+	} elseif($action == 'getPlayerCount'){
+		if(isset($_GET['gameid'])){
+			$count = getPlayerCount($_GET['gameid']);
+			echo(json_encode($count));
+		} else {
+			echo(json_encode('gameid must be set'));
+		}
+	} elseif($action == 'gameStart'){
+		if(isset($_GET['gameid'])){
+			$count = getPlayerCount($_GET['gameid']);
+			if($count > 1){
+				addHistory($_GET['gameid'], 'game started');
+			} else {
+				echo(json_encode('Need at least 2 players to start');
+			}
+		} else {
+			echo(json_encode('gameid must be set'));
+		}
 	} else {
 		echo(json_encode("Action " . $action . " not supported."));
 	}
 	closeLink($link);
 } else {
-	echo(json_encode("No action provided. Supported actions(getGames, getGame, createGame, createUser, getUsers, getUser, joinGame, leaveGame)"));
+	echo(json_encode("No action provided. Supported actions(getGames, getGame, createGame, createUser, getUsers, getUser, joinGame, leaveGame, getHistories, getHistory, getPlayerCount, gameStart)"));
 }
 
 ?>
